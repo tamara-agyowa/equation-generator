@@ -1,0 +1,19 @@
+{
+  "name": "Freedom Kids Equation Generator",
+  "short_name": "Equation Generator",
+  "description": "Create custom math practice with addition, subtraction, multiplication and division.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f5f3ed",
+  "theme_color": "#122d2b",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

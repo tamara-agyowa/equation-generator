@@ -1,0 +1,950 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <title>Free Math Equation Generator | Freedom Kids</title>
+  <meta name="description" content="Create fresh addition, subtraction, multiplication and division practice at exactly the level your child needs.">
+  <meta name="theme-color" content="#122d2b">
+  <meta name="color-scheme" content="light">
+  <link rel="manifest" href="./manifest.json">
+  <link rel="icon" href="./icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="./icon.svg">
+  <style>
+
+  #equation-app {
+    --eq-bg: #f5f3ed;
+    --eq-card: #ffffff;
+    --eq-text: #122d2b;
+    --eq-muted: #9da596;
+    --eq-line: #dbdcd5;
+    --eq-accent: #122d2b;
+    --eq-accent-secondary: #153f3e;
+    --eq-accent-soft: #f5f3ed;
+    --eq-teal: #0e6161;
+    --eq-gold: #b6925a;
+    --eq-shadow: 0 14px 40px rgba(18, 45, 43, 0.08);
+    --eq-radius: 20px;
+    color: var(--eq-text);
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  }
+
+  #equation-app * { box-sizing: border-box; }
+
+  #equation-app .eq-wrap {
+    width: 100%;
+    max-width: 980px;
+    margin: 0 auto;
+  }
+
+  #equation-app .eq-grid {
+    display: grid;
+    grid-template-columns: 360px 1fr;
+    gap: 22px;
+    align-items: start;
+  }
+
+  #equation-app .eq-card {
+    background: var(--eq-card);
+    border: 1px solid var(--eq-line);
+    border-radius: var(--eq-radius);
+    box-shadow: var(--eq-shadow);
+    padding: 22px;
+  }
+
+  #equation-app .eq-settings {
+    position: sticky;
+    top: 20px;
+  }
+
+  #equation-app .eq-field {
+    margin-bottom: 22px;
+  }
+
+  #equation-app .eq-field:last-child { margin-bottom: 0; }
+
+  #equation-app .eq-label {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 750;
+    margin-bottom: 9px;
+    color: var(--eq-text);
+  }
+
+  #equation-app .eq-help {
+    color: var(--eq-muted);
+    font-size: 0.82rem;
+    margin-top: 7px;
+    line-height: 1.45;
+  }
+
+  #equation-app .eq-choice-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 9px;
+  }
+
+  #equation-app .eq-choice {
+    border: 1px solid var(--eq-line);
+    background: #fff;
+    color: var(--eq-text);
+    padding: 12px 14px;
+    border-radius: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.18s ease;
+    text-align: center;
+    user-select: none;
+  }
+
+  #equation-app .eq-choice:hover {
+    border-color: var(--eq-teal);
+  }
+
+  #equation-app .eq-choice.active {
+    background: var(--eq-accent-soft);
+    border-color: var(--eq-teal);
+    color: var(--eq-teal);
+    box-shadow: inset 0 0 0 1px rgba(14, 97, 97, 0.08);
+  }
+
+  #equation-app input[type="number"] {
+    width: 100%;
+    border: 1px solid var(--eq-line);
+    border-radius: 12px;
+    padding: 13px 14px;
+    font: inherit;
+    font-weight: 700;
+    color: var(--eq-text);
+    outline: none;
+    background: #fff;
+  }
+
+  #equation-app input[type="number"]:focus {
+    border-color: var(--eq-teal);
+    box-shadow: 0 0 0 3px rgba(14, 97, 97, 0.08);
+  }
+
+  #equation-app .eq-question-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+  }
+
+  #equation-app .eq-question-row .eq-choice { padding-inline: 8px; }
+
+  #equation-app .eq-custom-wrap {
+    margin-top: 10px;
+    display: none;
+  }
+
+  #equation-app .eq-custom-wrap.show { display: block; }
+
+  #equation-app .eq-primary {
+    width: 100%;
+    border: 0;
+    border-radius: 12px;
+    padding: 14px 16px;
+    font: inherit;
+    font-weight: 800;
+    cursor: pointer;
+    transition: 0.18s ease;
+    background: var(--eq-accent);
+    color: #fff;
+  }
+
+  #equation-app .eq-primary:hover {
+    transform: translateY(-1px);
+    background: var(--eq-accent-secondary);
+    box-shadow: 0 8px 18px rgba(18, 45, 43, 0.18);
+  }
+
+  #equation-app .eq-result-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 16px;
+  }
+
+  #equation-app .eq-result-head h2 {
+    margin: 0 0 5px;
+    font-size: 1.4rem;
+    color: var(--eq-text);
+  }
+
+  #equation-app .eq-meta {
+    color: var(--eq-muted);
+    font-size: 0.9rem;
+  }
+
+  #equation-app .eq-actions {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  #equation-app .eq-actions button {
+    border: 1px solid var(--eq-line);
+    background: #fff;
+    border-radius: 10px;
+    padding: 9px 12px;
+    font: inherit;
+    font-weight: 750;
+    cursor: pointer;
+    color: var(--eq-text);
+    transition: 0.18s ease;
+  }
+
+  #equation-app .eq-actions button:hover {
+    border-color: var(--eq-gold);
+    color: var(--eq-accent-secondary);
+  }
+
+  #equation-app .eq-equations {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: 34px;
+  }
+
+  #equation-app .eq-column {
+    min-width: 0;
+  }
+
+  #equation-app .eq-item {
+    display: grid;
+    grid-template-columns: 42px 1fr;
+    align-items: baseline;
+    padding: 10px 0;
+    border-bottom: 1px dashed var(--eq-line);
+    font-size: 1.08rem;
+    font-weight: 650;
+    letter-spacing: 0.01em;
+  }
+
+  #equation-app .eq-n {
+    color: var(--eq-gold);
+    font-size: 0.86rem;
+    font-weight: 700;
+  }
+
+  #equation-app .eq-empty {
+    border: 1px dashed var(--eq-line);
+    border-radius: 14px;
+    padding: 30px;
+    text-align: center;
+    color: var(--eq-muted);
+    line-height: 1.6;
+    background: linear-gradient(180deg, rgba(245,243,237,0.75), rgba(255,255,255,0.75));
+  }
+
+  #equation-app .eq-message {
+    display: none;
+    margin-bottom: 16px;
+    padding: 12px 14px;
+    border-radius: 12px;
+    line-height: 1.45;
+    font-size: 0.92rem;
+  }
+
+  #equation-app .eq-message.show { display: block; }
+
+  #equation-app .eq-message.error {
+    background: rgba(182, 146, 90, 0.12);
+    color: var(--eq-accent);
+    border: 1px solid rgba(182, 146, 90, 0.35);
+  }
+
+  #equation-app .eq-message.info {
+    background: rgba(14, 97, 97, 0.08);
+    color: var(--eq-teal);
+    border: 1px solid rgba(14, 97, 97, 0.22);
+  }
+
+  @media (max-width: 780px) {
+    #equation-app .eq-wrap {
+      width: 100%;
+      padding: 0 4px;
+    }
+
+    #equation-app .eq-grid {
+      grid-template-columns: 1fr;
+      gap: 16px;
+    }
+
+    #equation-app .eq-settings {
+      position: static;
+    }
+
+    #equation-app .eq-card {
+      padding: 18px;
+      border-radius: 16px;
+    }
+
+    #equation-app .eq-field {
+      margin-bottom: 18px;
+    }
+
+    #equation-app .eq-choice-row,
+    #equation-app .eq-question-row {
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    #equation-app .eq-choice {
+      min-height: 46px;
+      padding: 11px 10px;
+      font-size: 0.95rem;
+    }
+
+    #equation-app input[type="number"] {
+      min-height: 46px;
+      font-size: 1rem;
+    }
+
+    #equation-app .eq-primary {
+      min-height: 48px;
+      font-size: 1rem;
+    }
+
+    #equation-app .eq-result-head {
+      flex-direction: column;
+      align-items: stretch;
+      gap: 12px;
+    }
+
+    #equation-app .eq-actions {
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+
+    #equation-app .eq-actions button {
+      width: 100%;
+      min-height: 44px;
+    }
+
+    #equation-app .eq-equations {
+      grid-template-columns: 1fr;
+      column-gap: 0;
+    }
+
+    #equation-app .eq-column + .eq-column {
+      margin-top: 0;
+    }
+
+    #equation-app .eq-item {
+      grid-template-columns: 34px 1fr;
+      padding: 9px 0;
+      font-size: 1rem;
+    }
+
+    #equation-app .eq-n {
+      font-size: 0.82rem;
+    }
+
+    #equation-app .eq-meta {
+      line-height: 1.45;
+    }
+
+    #equation-app .eq-message {
+      font-size: 0.9rem;
+    }
+  }
+
+  @media (max-width: 480px) {
+    #equation-app .eq-card {
+      padding: 16px;
+      border-radius: 14px;
+    }
+
+    #equation-app .eq-choice {
+      font-size: 0.9rem;
+      padding: 10px 8px;
+    }
+
+    #equation-app .eq-result-head h2 {
+      font-size: 1.25rem;
+    }
+
+    #equation-app .eq-item {
+      grid-template-columns: 30px 1fr;
+      font-size: 0.98rem;
+    }
+  }
+
+
+  body {
+    margin: 0;
+    padding: 24px 16px 48px;
+    background: #122d2b;
+  }
+
+  @media (max-width: 780px) {
+    body {
+      padding: 14px 10px 32px;
+    }
+  }
+  </style>
+</head>
+<body>
+
+<div id="pwa-status-bar" style="
+  max-width:980px;
+  margin:0 auto 12px;
+  padding:10px 14px;
+  border-radius:12px;
+  background:#f5f3ed;
+  color:#122d2b;
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  font-size:14px;
+  display:flex;
+  justify-content:space-between;
+  gap:12px;
+  align-items:center;
+  flex-wrap:wrap;
+">
+  <span id="offline-status">Preparing offline access…</span>
+  <button id="install-app-button" type="button" style="
+    display:none;
+    border:1px solid #0e6161;
+    background:#ffffff;
+    color:#0e6161;
+    border-radius:9px;
+    padding:8px 11px;
+    font:inherit;
+    font-weight:700;
+    cursor:pointer;
+  ">Add to Home Screen</button>
+</div>
+
+<div id="equation-app">
+  <div class="eq-wrap">
+    <div class="eq-grid">
+      <aside class="eq-card eq-settings">
+        <div class="eq-field">
+          <span class="eq-label">Operations</span>
+          <div class="eq-choice-row">
+            <button type="button" class="eq-choice active" data-operation="addition">+ Addition</button>
+            <button type="button" class="eq-choice" data-operation="subtraction">− Subtraction</button>
+            <button type="button" class="eq-choice" data-operation="multiplication">× Multiplication</button>
+            <button type="button" class="eq-choice" data-operation="division">÷ Division</button>
+          </div>
+          <div class="eq-help">Select one or more operations.</div>
+        </div>
+
+        <div class="eq-field">
+          <label class="eq-label" for="eq-max-number">Numbers up to</label>
+          <input id="eq-max-number" type="number" value="3" min="1" max="999" inputmode="numeric">
+          <div class="eq-help">For addition and subtraction, equations stay within this level. For multiplication and division, this controls the factors/divisors and whole-number quotients.</div>
+        </div>
+
+        <div class="eq-field">
+          <span class="eq-label">Include zero</span>
+          <div class="eq-choice-row">
+            <button type="button" class="eq-choice" data-zero="yes">Yes</button>
+            <button type="button" class="eq-choice active" data-zero="no">No</button>
+          </div>
+        </div>
+
+        <div class="eq-field">
+          <span class="eq-label">Allow repetition</span>
+          <div class="eq-choice-row">
+            <button type="button" class="eq-choice" data-repeat="yes">Yes</button>
+            <button type="button" class="eq-choice active" data-repeat="no">No</button>
+          </div>
+          <div class="eq-help">Turn this on if you want more questions than the current settings can create uniquely.</div>
+        </div>
+
+        <div class="eq-field">
+          <span class="eq-label">Equation style</span>
+          <div class="eq-question-row">
+            <button type="button" class="eq-choice active" data-style="answer">Answer</button>
+            <button type="button" class="eq-choice" data-style="first">First number</button>
+            <button type="button" class="eq-choice" data-style="second">Second number</button>
+            <button type="button" class="eq-choice" data-style="mixed">Mixed</button>
+          </div>
+          <div class="eq-help">Choose which part of the equation should be missing.</div>
+        </div>
+
+        <div class="eq-field">
+          <span class="eq-label">Questions</span>
+          <div class="eq-question-row">
+            <button type="button" class="eq-choice" data-count="20">20</button>
+            <button type="button" class="eq-choice active" data-count="30">30</button>
+            <button type="button" class="eq-choice" data-count="40">40</button>
+            <button type="button" class="eq-choice" data-count="custom">Custom</button>
+          </div>
+          <div id="eq-custom-wrap" class="eq-custom-wrap">
+            <input id="eq-custom-count" type="number" min="1" value="30" inputmode="numeric">
+          </div>
+        </div>
+
+        <button type="button" id="eq-generate" class="eq-primary">Generate equations</button>
+      </aside>
+
+      <section class="eq-card">
+        <div id="eq-message" class="eq-message"></div>
+
+        <div class="eq-result-head">
+          <div>
+            <h2>Today's equations</h2>
+            <div id="eq-meta" class="eq-meta">Choose your settings and generate.</div>
+          </div>
+
+          <div class="eq-actions">
+            <button id="eq-copy" type="button">Copy</button>
+            <button id="eq-regen" type="button">Regenerate</button>
+          </div>
+        </div>
+
+        <div id="eq-equations" class="eq-empty">
+          Your equations will appear here.
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  const app = document.getElementById("equation-app");
+  if (!app || app.dataset.initialized === "true") return;
+  app.dataset.initialized = "true";
+
+  const state = {
+    operations: new Set(["addition"]),
+    includeZero: false,
+    allowRepetition: false,
+    equationStyle: "answer",
+    count: 30
+  };
+
+  const operationButtons = app.querySelectorAll("[data-operation]");
+  const zeroButtons = app.querySelectorAll("[data-zero]");
+  const repeatButtons = app.querySelectorAll("[data-repeat]");
+  const styleButtons = app.querySelectorAll("[data-style]");
+  const countButtons = app.querySelectorAll("[data-count]");
+  const maxNumberInput = app.querySelector("#eq-max-number");
+  const customWrap = app.querySelector("#eq-custom-wrap");
+  const customCount = app.querySelector("#eq-custom-count");
+  const equationsEl = app.querySelector("#eq-equations");
+  const metaEl = app.querySelector("#eq-meta");
+  const messageEl = app.querySelector("#eq-message");
+  const generateBtn = app.querySelector("#eq-generate");
+  const regenBtn = app.querySelector("#eq-regen");
+  const copyBtn = app.querySelector("#eq-copy");
+
+  let currentEquations = [];
+
+  function setMessage(text = "", type = "info") {
+    messageEl.textContent = text;
+    messageEl.className = "eq-message";
+    if (text) messageEl.classList.add("show", type);
+  }
+
+  function clamp(value, min, max) {
+    return Math.max(min, Math.min(max, value));
+  }
+
+  function keyFor(q) {
+    return `${q.operation}:${q.a}:${q.b}:${q.answer}`;
+  }
+
+  operationButtons.forEach(button => {
+    button.addEventListener("click", () => {
+      const op = button.dataset.operation;
+
+      if (state.operations.has(op)) {
+        if (state.operations.size === 1) return;
+        state.operations.delete(op);
+        button.classList.remove("active");
+      } else {
+        state.operations.add(op);
+        button.classList.add("active");
+      }
+    });
+  });
+
+  zeroButtons.forEach(button => {
+    button.addEventListener("click", () => {
+      zeroButtons.forEach(b => b.classList.remove("active"));
+      button.classList.add("active");
+      state.includeZero = button.dataset.zero === "yes";
+    });
+  });
+
+  repeatButtons.forEach(button => {
+    button.addEventListener("click", () => {
+      repeatButtons.forEach(b => b.classList.remove("active"));
+      button.classList.add("active");
+      state.allowRepetition = button.dataset.repeat === "yes";
+    });
+  });
+
+  styleButtons.forEach(button => {
+    button.addEventListener("click", () => {
+      styleButtons.forEach(b => b.classList.remove("active"));
+      button.classList.add("active");
+      state.equationStyle = button.dataset.style;
+    });
+  });
+
+  countButtons.forEach(button => {
+    button.addEventListener("click", () => {
+      countButtons.forEach(b => b.classList.remove("active"));
+      button.classList.add("active");
+
+      if (button.dataset.count === "custom") {
+        customWrap.classList.add("show");
+        state.count = Number(customCount.value);
+      } else {
+        customWrap.classList.remove("show");
+        state.count = Number(button.dataset.count);
+      }
+    });
+  });
+
+  customCount.addEventListener("input", () => {
+    state.count = Math.max(1, Number(customCount.value || 1));
+  });
+
+  function buildPool(max, includeZero, operations) {
+    const min = includeZero ? 0 : 1;
+    const pool = [];
+
+    if (operations.has("addition")) {
+      for (let a = min; a <= max; a++) {
+        for (let b = min; b <= max; b++) {
+          const answer = a + b;
+          if (answer <= max) {
+            pool.push({ a, b, symbol: "+", answer, operation: "addition" });
+          }
+        }
+      }
+    }
+
+    if (operations.has("subtraction")) {
+      for (let a = min; a <= max; a++) {
+        for (let b = min; b <= max; b++) {
+          const answer = a - b;
+          if (answer < 0) continue;
+          if (!includeZero && answer === 0) continue;
+          if (answer > max) continue;
+
+          pool.push({ a, b, symbol: "−", answer, operation: "subtraction" });
+        }
+      }
+    }
+
+    if (operations.has("multiplication")) {
+      for (let a = min; a <= max; a++) {
+        for (let b = min; b <= max; b++) {
+          const answer = a * b;
+
+          // Multiplication uses operand control:
+          // both factors stay within the chosen level.
+          pool.push({ a, b, symbol: "×", answer, operation: "multiplication" });
+        }
+      }
+    }
+
+    if (operations.has("division")) {
+      // Division is generated from valid factor pairs so answers are always whole numbers.
+      // Divisor can never be zero.
+      const divisorMin = 1;
+
+      for (let divisor = divisorMin; divisor <= max; divisor++) {
+        for (let quotient = min; quotient <= max; quotient++) {
+          const dividend = divisor * quotient;
+
+          if (!includeZero && quotient === 0) continue;
+
+          pool.push({
+            a: dividend,
+            b: divisor,
+            symbol: "÷",
+            answer: quotient,
+            operation: "division"
+          });
+        }
+      }
+    }
+
+    return pool;
+  }
+
+  function shuffle(array) {
+    const copy = [...array];
+    for (let i = copy.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [copy[i], copy[j]] = [copy[j], copy[i]];
+    }
+    return copy;
+  }
+
+  function balancedSelection(pool, count, operations, allowRepetition) {
+    if (!pool.length || count <= 0) return [];
+
+    function uniqueBalancedBatch() {
+      const selectedOps = [...operations];
+
+      if (selectedOps.length === 1) {
+        return shuffle(pool);
+      }
+
+      const buckets = selectedOps.map(op => ({
+        op,
+        items: shuffle(pool.filter(q => q.operation === op)),
+        index: 0
+      }));
+
+      const batch = [];
+      let madeProgress = true;
+
+      while (madeProgress) {
+        madeProgress = false;
+
+        for (const bucket of buckets) {
+          if (bucket.index < bucket.items.length) {
+            batch.push(bucket.items[bucket.index++]);
+            madeProgress = true;
+          }
+        }
+      }
+
+      return batch;
+    }
+
+    const firstBatch = uniqueBalancedBatch();
+
+    if (!allowRepetition) {
+      return firstBatch.slice(0, Math.min(count, firstBatch.length));
+    }
+
+    const selected = [];
+
+    while (selected.length < count) {
+      const batch = uniqueBalancedBatch();
+      const remaining = count - selected.length;
+      selected.push(...batch.slice(0, remaining));
+    }
+
+    return selected;
+  }
+
+  function chooseStyle() {
+    if (state.equationStyle !== "mixed") return state.equationStyle;
+    const styles = ["answer", "first", "second"];
+    return styles[Math.floor(Math.random() * styles.length)];
+  }
+
+  function formatEquation(q, style) {
+    if (style === "first") {
+      return `_____ ${q.symbol} ${q.b} = ${q.answer}`;
+    }
+
+    if (style === "second") {
+      return `${q.a} ${q.symbol} _____ = ${q.answer}`;
+    }
+
+    return `${q.a} ${q.symbol} ${q.b} = _____`;
+  }
+
+  function render(equations) {
+    if (!equations.length) {
+      equationsEl.className = "eq-empty";
+      equationsEl.textContent = "No equations available with these settings.";
+      return;
+    }
+
+    const styledEquations = equations.map(q => ({
+      ...q,
+      displayStyle: chooseStyle()
+    }));
+
+    currentEquations = styledEquations;
+
+    const splitAt = Math.ceil(styledEquations.length / 2);
+    const firstColumn = styledEquations.slice(0, splitAt);
+    const secondColumn = styledEquations.slice(splitAt);
+
+    function renderColumn(items, startingNumber) {
+      return `
+        <div class="eq-column">
+          ${items.map((q, index) => `
+            <div class="eq-item">
+              <span class="eq-n">${startingNumber + index}.</span>
+              <span>${formatEquation(q, q.displayStyle)}</span>
+            </div>
+          `).join("")}
+        </div>
+      `;
+    }
+
+    equationsEl.className = "eq-equations";
+    equationsEl.innerHTML =
+      renderColumn(firstColumn, 1) +
+      renderColumn(secondColumn, splitAt + 1);
+  }
+
+  function getRequestedCount() {
+    const activeCount = app.querySelector("[data-count].active");
+    if (activeCount?.dataset.count === "custom") {
+      return Math.max(1, Number(customCount.value || 1));
+    }
+    return Number(activeCount?.dataset.count || 30);
+  }
+
+  function generate() {
+    setMessage();
+
+    const max = clamp(Number(maxNumberInput.value || 1), 1, 999);
+    maxNumberInput.value = max;
+
+    const requested = getRequestedCount();
+    state.count = requested;
+
+    const pool = buildPool(max, state.includeZero, state.operations);
+
+    if (requested >= 500) {
+      setMessage(
+        `Large practice set: generating ${requested} equations may be harder to review or copy comfortably.`,
+        "info"
+      );
+    }
+
+    if (!pool.length) {
+      currentEquations = [];
+      render([]);
+      metaEl.textContent = "No valid equations found.";
+      setMessage(
+        "These settings do not create any valid equations. Try increasing the number level, changing the operation, or allowing zero.",
+        "error"
+      );
+      return;
+    }
+
+    currentEquations = balancedSelection(pool, requested, state.operations, state.allowRepetition);
+
+    if (requested > pool.length && !state.allowRepetition) {
+      setMessage(
+        `${requested >= 500 ? `Large practice set: generating ${requested} equations may be harder to review or copy comfortably. ` : ""}These settings create ${pool.length} unique equations. You asked for ${requested}. Turn on repetition if you want the full ${requested} questions with this number level.`,
+        "info"
+      );
+    } else if (requested > pool.length && state.allowRepetition) {
+      const repeated = requested - pool.length;
+      setMessage(
+        `${requested >= 500 ? `Large practice set: generating ${requested} equations may be harder to review or copy comfortably. ` : ""}These settings create ${pool.length} unique equations. Repetition is on, so ${repeated} ${repeated === 1 ? "equation is" : "equations are"} repeated to reach ${requested} questions.`,
+        "info"
+      );
+    }
+
+    render(currentEquations);
+
+    const operationNames = {
+      addition: "Addition",
+      subtraction: "Subtraction",
+      multiplication: "Multiplication",
+      division: "Division"
+    };
+
+    const opText = [...state.operations]
+      .map(op => operationNames[op])
+      .join(" + ");
+
+    metaEl.textContent =
+      `${opText} · up to ${max} · ${state.includeZero ? "zero included" : "zero excluded"} · ${state.allowRepetition ? "repetition allowed" : "unique only"} · ${state.equationStyle === "mixed" ? "mixed style" : state.equationStyle + " missing"} · ${currentEquations.length} questions`;
+  }
+
+  async function copyEquations() {
+    if (!currentEquations.length) {
+      setMessage("Generate some equations first.", "error");
+      return;
+    }
+
+    const text = currentEquations
+      .map((q, index) => `${index + 1}. ${formatEquation(q, q.displayStyle || "answer")}`)
+      .join("\n");
+
+    try {
+      await navigator.clipboard.writeText(text);
+      setMessage("Copied to clipboard.", "info");
+    } catch {
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand("copy");
+      textarea.remove();
+      setMessage("Copied to clipboard.", "info");
+    }
+  }
+
+  generateBtn.addEventListener("click", generate);
+  regenBtn.addEventListener("click", generate);
+  copyBtn.addEventListener("click", copyEquations);
+
+  generate();
+})();
+</script>
+
+<script>
+(function () {
+  const status = document.getElementById("offline-status");
+  const installButton = document.getElementById("install-app-button");
+  let deferredPrompt = null;
+
+  function updateNetworkStatus() {
+    if (!status) return;
+    status.textContent = navigator.onLine
+      ? "Online · offline copy available after first successful load"
+      : "Offline · equation generator is ready";
+  }
+
+  window.addEventListener("online", updateNetworkStatus);
+  window.addEventListener("offline", updateNetworkStatus);
+  updateNetworkStatus();
+
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", async () => {
+      try {
+        const registration = await navigator.serviceWorker.register("./service-worker.js");
+        await navigator.serviceWorker.ready;
+        if (status && navigator.onLine) {
+          status.textContent = "Available offline";
+        }
+      } catch (error) {
+        if (status) {
+          status.textContent = "Offline setup could not be completed on this browser";
+        }
+      }
+    });
+  } else if (status) {
+    status.textContent = "This browser does not support offline app mode";
+  }
+
+  window.addEventListener("beforeinstallprompt", (event) => {
+    event.preventDefault();
+    deferredPrompt = event;
+    if (installButton) installButton.style.display = "inline-block";
+  });
+
+  if (installButton) {
+    installButton.addEventListener("click", async () => {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      await deferredPrompt.userChoice;
+      deferredPrompt = null;
+      installButton.style.display = "none";
+    });
+  }
+
+  window.addEventListener("appinstalled", () => {
+    if (status) status.textContent = "Installed · available offline";
+    if (installButton) installButton.style.display = "none";
+  });
+})();
+</script>
+</body>
+</html>
