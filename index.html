@@ -946,5 +946,33 @@
   });
 })();
 </script>
+  <!-- Add this near the bottom of index.html, before </body> -->
+<script>
+(function () {
+  function sendHeight() {
+    const height = Math.max(
+      document.body.scrollHeight,
+      document.documentElement.scrollHeight
+    );
+
+    window.parent.postMessage(
+      {
+        type: "freedom-kids-height",
+        height: height
+      },
+      "https://www.camindadicroes.earth"
+    );
+  }
+
+  window.addEventListener("load", sendHeight);
+  window.addEventListener("resize", sendHeight);
+
+  const observer = new ResizeObserver(sendHeight);
+  observer.observe(document.body);
+
+  setTimeout(sendHeight, 250);
+  setTimeout(sendHeight, 1000);
+})();
+</script>
 </body>
 </html>
