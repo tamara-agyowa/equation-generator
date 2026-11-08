@@ -1,2 +1,2 @@
 # equation-generator
-Free browser-based math equation generator for kids, with addition, subtraction, multiplication, division, custom levels, equation styles, offline support, and installable PWA functionality.
+Freedom Kids' free browser-based math equation generator with custom practice levels, addition, subtraction, multiplication, division, equation styles, offline support, and installable PWA functionality.
