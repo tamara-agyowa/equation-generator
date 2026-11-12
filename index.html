@@ -261,6 +261,17 @@
     border: 1px solid rgba(14, 97, 97, 0.22);
   }
 
+
+  #equation-app .eq-pdf-panel{margin-top:20px;padding:18px;border:1px solid var(--eq-line);border-radius:14px;background:var(--eq-accent-soft)}
+  #equation-app .eq-pdf-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  #equation-app .eq-pdf-span-2{grid-column:1/-1}
+  #equation-app .eq-pdf-select,#equation-app .eq-pdf-text{width:100%;border:1px solid var(--eq-line);border-radius:10px;padding:11px 12px;background:#fff;color:var(--eq-text);font:inherit}
+  #equation-app .eq-pdf-check{display:inline-flex;gap:10px;align-items:center;color:var(--eq-text);font-weight:700;cursor:pointer}
+  #equation-app .eq-pdf-check input{width:18px;height:18px}
+  #equation-app .eq-pdf-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:16px}
+  #equation-app .eq-pdf-actions button{border:1px solid var(--eq-line);border-radius:10px;padding:11px 14px;font:inherit;font-weight:750;cursor:pointer}
+  #equation-app .eq-pdf-actions .eq-primary{width:auto;border:0}
+
   @media (max-width: 780px) {
     #equation-app .eq-wrap {
       width: 100%;
@@ -347,9 +358,11 @@
       line-height: 1.45;
     }
 
-    #equation-app .eq-message {
-      font-size: 0.9rem;
-    }
+    #equation-app .eq-message { font-size:0.9rem; }
+    #equation-app .eq-pdf-grid{grid-template-columns:1fr}
+    #equation-app .eq-pdf-span-2{grid-column:auto}
+    #equation-app .eq-pdf-actions{display:grid;grid-template-columns:1fr 1fr}
+    #equation-app .eq-pdf-actions .eq-primary{width:100%}
   }
 
   @media (max-width: 480px) {
@@ -495,11 +508,24 @@
           <div class="eq-actions">
             <button id="eq-copy" type="button">Copy</button>
             <button id="eq-regen" type="button">Regenerate</button>
+            <button id="eq-pdf-open" type="button">Download PDF</button>
           </div>
         </div>
 
         <div id="eq-equations" class="eq-empty">
           Your equations will appear here.
+        </div>
+
+        <div id="eq-pdf-panel" class="eq-pdf-panel" hidden>
+          <div class="eq-pdf-grid">
+            <div><label class="eq-label" for="eq-pdf-paper">Paper size</label><select id="eq-pdf-paper" class="eq-pdf-select"><option value="a4">A4</option><option value="letter">US Letter</option></select></div>
+            <div><label class="eq-label" for="eq-pdf-orientation">Orientation</label><select id="eq-pdf-orientation" class="eq-pdf-select"><option value="portrait">Portrait</option><option value="landscape">Landscape</option></select></div>
+            <div class="eq-pdf-span-2"><label class="eq-label" for="eq-pdf-title">Title (optional)</label><input id="eq-pdf-title" class="eq-pdf-text" type="text" placeholder="Math Practice"></div>
+            <div><label class="eq-label" for="eq-pdf-name">Name (optional)</label><input id="eq-pdf-name" class="eq-pdf-text" type="text" placeholder="Name"></div>
+            <div><label class="eq-label" for="eq-pdf-date">Date (optional)</label><input id="eq-pdf-date" class="eq-pdf-text" type="text" placeholder="Date"></div>
+            <div class="eq-pdf-span-2"><label class="eq-pdf-check"><input id="eq-pdf-answers" type="checkbox"> Include answer key</label></div>
+          </div>
+          <div class="eq-pdf-actions"><button id="eq-pdf-cancel" type="button">Cancel</button><button id="eq-pdf-download" class="eq-primary" type="button">Create PDF</button></div>
         </div>
       </section>
     </div>
@@ -534,6 +560,16 @@
   const generateBtn = app.querySelector("#eq-generate");
   const regenBtn = app.querySelector("#eq-regen");
   const copyBtn = app.querySelector("#eq-copy");
+  const pdfOpenBtn = app.querySelector("#eq-pdf-open");
+  const pdfPanel = app.querySelector("#eq-pdf-panel");
+  const pdfCancelBtn = app.querySelector("#eq-pdf-cancel");
+  const pdfDownloadBtn = app.querySelector("#eq-pdf-download");
+  const pdfPaper = app.querySelector("#eq-pdf-paper");
+  const pdfOrientation = app.querySelector("#eq-pdf-orientation");
+  const pdfTitle = app.querySelector("#eq-pdf-title");
+  const pdfName = app.querySelector("#eq-pdf-name");
+  const pdfDate = app.querySelector("#eq-pdf-date");
+  const pdfAnswers = app.querySelector("#eq-pdf-answers");
 
   let currentEquations = [];
 
@@ -857,6 +893,18 @@
       `${opText} · up to ${max} · ${state.includeZero ? "zero included" : "zero excluded"} · ${state.allowRepetition ? "repetition allowed" : "unique only"} · ${state.equationStyle === "mixed" ? "mixed style" : state.equationStyle + " missing"} · ${currentEquations.length} questions`;
   }
 
+
+  function escapePdfText(value){return String(value).replace(/\\/g,"\\\\").replace(/\(/g,"\\(").replace(/\)/g,"\\)").replace(/[^\x20-\x7E]/g,ch=>({"−":"-","×":"x","÷":"/"}[ch]||"?"));}
+  function downloadBlob(blob,filename){const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+  function buildPracticeLines(equations,answers){return equations.map((q,index)=>{const style=q.displayStyle||"answer";if(!answers)return `${index+1}. ${formatEquation(q,style)}`;return `${index+1}. ${q.a} ${q.symbol} ${q.b} = ${q.answer}`;});}
+  function createSimplePdf(options){
+    const sizes={a4:[595.28,841.89],letter:[612,792]};let [pageW,pageH]=sizes[options.paper]||sizes.a4;if(options.orientation==="landscape")[pageW,pageH]=[pageH,pageW];
+    const margin=42,top=46,bottom=42,headerSpace=70,columnGap=28,columns=2,fontSize=11,lineH=20;const usableH=pageH-top-bottom-headerSpace;const rowsPerCol=Math.max(1,Math.floor(usableH/lineH));const perPage=rowsPerCol*columns;const pages=[];
+    function buildPage(lines,isAnswerKey){let content="BT\n";const title=isAnswerKey?`${options.title||"Math Practice"} - Answer Key`:(options.title||"Math Practice");content+=`/F1 18 Tf\n${margin} ${pageH-top} Td\n(${escapePdfText(title)}) Tj\n`;if(!isAnswerKey){content+=`/F1 10 Tf\n0 -24 Td\n(${escapePdfText(options.name?`Name: ${options.name}`:"Name: ______________________________")}) Tj\n${pageW/2-margin-20} 0 Td\n(${escapePdfText(options.date?`Date: ${options.date}`:"Date: ____________________")}) Tj\n`;}content+="ET\n";lines.forEach((line,idx)=>{const col=Math.floor(idx/rowsPerCol),row=idx%rowsPerCol;const x=margin+col*((pageW-margin*2-columnGap)/2+columnGap);const y=pageH-top-headerSpace-row*lineH;content+=`BT\n/F1 ${fontSize} Tf\n${x} ${y} Td\n(${escapePdfText(line)}) Tj\nET\n`;});return content;}
+    const practice=buildPracticeLines(currentEquations,false);for(let i=0;i<practice.length;i+=perPage)pages.push({content:buildPage(practice.slice(i,i+perPage),false)});if(options.answers){const ans=buildPracticeLines(currentEquations,true);for(let i=0;i<ans.length;i+=perPage)pages.push({content:buildPage(ans.slice(i,i+perPage),true)});}
+    const objects=[];const addObj=body=>(objects.push(body),objects.length);const fontObj=addObj("<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>");const pagesObj=addObj("");const pageNums=[];for(const page of pages){const stream=page.content;const contentObj=addObj(`<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`);pageNums.push(addObj(`<< /Type /Page /Parent ${pagesObj} 0 R /MediaBox [0 0 ${pageW} ${pageH}] /Resources << /Font << /F1 ${fontObj} 0 R >> >> /Contents ${contentObj} 0 R >>`));}objects[pagesObj-1]=`<< /Type /Pages /Kids [${pageNums.map(n=>`${n} 0 R`).join(" ")}] /Count ${pageNums.length} >>`;const catalog=addObj(`<< /Type /Catalog /Pages ${pagesObj} 0 R >>`);let pdf="%PDF-1.4\n";const offsets=[0];objects.forEach((obj,i)=>{offsets.push(pdf.length);pdf+=`${i+1} 0 obj\n${obj}\nendobj\n`;});const xref=pdf.length;pdf+=`xref\n0 ${objects.length+1}\n0000000000 65535 f \n`;for(let i=1;i<=objects.length;i++)pdf+=String(offsets[i]).padStart(10,"0")+" 00000 n \n";pdf+=`trailer\n<< /Size ${objects.length+1} /Root ${catalog} 0 R >>\nstartxref\n${xref}\n%%EOF`;return new Blob([pdf],{type:"application/pdf"});
+  }
+
   async function copyEquations() {
     if (!currentEquations.length) {
       setMessage("Generate some equations first.", "error");
@@ -884,6 +932,9 @@
   generateBtn.addEventListener("click", generate);
   regenBtn.addEventListener("click", generate);
   copyBtn.addEventListener("click", copyEquations);
+  pdfOpenBtn.addEventListener("click",()=>{if(!currentEquations.length){setMessage("Generate some equations first.","error");return;}pdfPanel.hidden=false;pdfPanel.scrollIntoView({behavior:"smooth",block:"nearest"});});
+  pdfCancelBtn.addEventListener("click",()=>{pdfPanel.hidden=true;});
+  pdfDownloadBtn.addEventListener("click",()=>{if(!currentEquations.length){setMessage("Generate some equations first.","error");return;}const blob=createSimplePdf({paper:pdfPaper.value,orientation:pdfOrientation.value,title:pdfTitle.value.trim(),name:pdfName.value.trim(),date:pdfDate.value.trim(),answers:pdfAnswers.checked});const safe=(pdfTitle.value.trim()||"math-practice").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"");downloadBlob(blob,`${safe||"math-practice"}.pdf`);setMessage("PDF created.","info");});
 
   generate();
 })();
@@ -944,34 +995,6 @@
     if (status) status.textContent = "Installed · available offline";
     if (installButton) installButton.style.display = "none";
   });
-})();
-</script>
-  <!-- Add this near the bottom of index.html, before </body> -->
-<script>
-(function () {
-  function sendHeight() {
-    const height = Math.max(
-      document.body.scrollHeight,
-      document.documentElement.scrollHeight
-    );
-
-    window.parent.postMessage(
-      {
-        type: "freedom-kids-height",
-        height: height
-      },
-      "https://www.camindadicroes.earth"
-    );
-  }
-
-  window.addEventListener("load", sendHeight);
-  window.addEventListener("resize", sendHeight);
-
-  const observer = new ResizeObserver(sendHeight);
-  observer.observe(document.body);
-
-  setTimeout(sendHeight, 250);
-  setTimeout(sendHeight, 1000);
 })();
 </script>
 </body>
