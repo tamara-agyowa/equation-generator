@@ -1,7 +1,7 @@
 {
   "name": "Freedom Kids Equation Generator",
   "short_name": "Equation Generator",
-  "description": "Create custom math practice with addition, subtraction, multiplication and division.",
+  "description": "Create custom math practice with addition, subtraction, multiplication and division, then download clean printable PDFs.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
