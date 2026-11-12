@@ -1,4 +1,4 @@
-const CACHE_NAME = "freedom-kids-equation-generator-v1";
+const CACHE_NAME = "freedom-kids-equation-generator-v2";
 
 const APP_SHELL = [
   "./",
